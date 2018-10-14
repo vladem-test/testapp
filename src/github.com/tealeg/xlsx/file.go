@@ -270,7 +270,7 @@ func (f *File) MarshallParts() (map[string]string, error) {
 	fmt.Println("[" + time.Now().Format("15:04:05") + "] Before processing sheets.")
 	PrintMemUsage()
 	for _, sheet := range f.Sheets {
-		xSheet := sheet.makeXLSXSheet(refTable, f.styles) // 400mb is lost here
+		xSheet := sheet.makeXLSXSheet(refTable, f.styles) // 400mb is lost here (total 1.5gb)
 		fmt.Println("[" + time.Now().Format("15:04:05") + "] After makeXLSXSheet.")
 		PrintMemUsage()
 		rId := fmt.Sprintf("rId%d", sheetIndex)
@@ -288,7 +288,7 @@ func (f *File) MarshallParts() (map[string]string, error) {
 			SheetId: sheetId,
 			Id:      rId,
 			State:   "visible"}
-		parts[partName], err = marshal(xSheet) // 500mb lost here
+		parts[partName], err = marshal(xSheet) // 500mb lost here (total 1.5gb)
 		fmt.Println("[" + time.Now().Format("15:04:05") + "] After marshal.")
 		PrintMemUsage()
 		if err != nil {

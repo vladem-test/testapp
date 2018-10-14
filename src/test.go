@@ -10,6 +10,7 @@ import (
 
 func main() {
     fmt.Println("[" + time.Now().Format("15:04:05") + "] Starting..")
+    xlsx.PrintMemUsage()
     rowsN := os.Args[1]
     n, err := strconv.Atoi(rowsN)
     if err != nil {
@@ -19,15 +20,16 @@ func main() {
 
     sheetName := "Sheet1"
 
-    xlsx := xlsx.NewFile()
-    _, err = xlsx.AddSheet(sheetName)
+    file := xlsx.NewFile()
+    _, err = file.AddSheet(sheetName)
     if err != nil {
         fmt.Printf(err.Error())
     }
 
-    fmt.Println("[" + time.Now().Format("15:04:05") + "] Starting to generate document..")    
+    fmt.Println("[" + time.Now().Format("15:04:05") + "] Starting to generate document..")
+    xlsx.PrintMemUsage()
     for i:=0; i < n; i++ {
-        row := xlsx.Sheet[sheetName].AddRow()
+        row := file.Sheet[sheetName].AddRow()
 
         for j:=0; j< 16; j++ {
             cell := row.AddCell()
@@ -36,9 +38,10 @@ func main() {
     }
 
     fmt.Println("[" + time.Now().Format("15:04:05") + "] Document generated.")
+    xlsx.PrintMemUsage()
     fmt.Println("[" + time.Now().Format("15:04:05") + "] Starting to generate file..")
 
-    err = xlsx.Save("MyXLSXFile.xlsx")
+    err = file.Save("MyXLSXFile.xlsx")
 
     fmt.Println("[" + time.Now().Format("15:04:05") + "] File generated.")
     if err != nil {

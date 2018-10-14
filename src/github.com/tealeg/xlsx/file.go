@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -119,6 +120,8 @@ func FileToSliceUnmerged(path string) ([][][]string, error) {
 
 // Save the File to an xlsx file at the provided path.
 func (f *File) Save(path string) (err error) {
+	fmt.Println("[" + time.Now().Format("15:04:05") + "] In Save().")
+	PrintMemUsage()
 	target, err := os.Create(path)
 	if err != nil {
 		return err
@@ -132,11 +135,15 @@ func (f *File) Save(path string) (err error) {
 
 // Write the File to io.Writer as xlsx
 func (f *File) Write(writer io.Writer) (err error) {
+	fmt.Println("[" + time.Now().Format("15:04:05") + "] In Write() before MarshallParts.")
 	parts, err := f.MarshallParts()
+	fmt.Println("[" + time.Now().Format("15:04:05") + "] After MarshallParts.")
 	if err != nil {
 		return
 	}
 	zipWriter := zip.NewWriter(writer)
+	fmt.Println("[" + time.Now().Format("15:04:05") + "] Before zipping.")
+	PrintMemUsage()
 	for partName, part := range parts {
 		w, err := zipWriter.Create(partName)
 		if err != nil {
@@ -147,6 +154,8 @@ func (f *File) Write(writer io.Writer) (err error) {
 			return err
 		}
 	}
+	fmt.Println("[" + time.Now().Format("15:04:05") + "] After zipping.")
+	PrintMemUsage()
 	return zipWriter.Close()
 }
 
@@ -258,8 +267,12 @@ func (f *File) MarshallParts() (map[string]string, error) {
 		err := errors.New("Workbook must contains atleast one worksheet")
 		return nil, err
 	}
+	fmt.Println("[" + time.Now().Format("15:04:05") + "] Before processing sheets.")
+	PrintMemUsage()
 	for _, sheet := range f.Sheets {
-		xSheet := sheet.makeXLSXSheet(refTable, f.styles)
+		xSheet := sheet.makeXLSXSheet(refTable, f.styles) // 400mb is lost here
+		fmt.Println("[" + time.Now().Format("15:04:05") + "] After makeXLSXSheet.")
+		PrintMemUsage()
 		rId := fmt.Sprintf("rId%d", sheetIndex)
 		sheetId := strconv.Itoa(sheetIndex)
 		sheetPath := fmt.Sprintf("worksheets/sheet%d.xml", sheetIndex)
@@ -275,13 +288,15 @@ func (f *File) MarshallParts() (map[string]string, error) {
 			SheetId: sheetId,
 			Id:      rId,
 			State:   "visible"}
-		parts[partName], err = marshal(xSheet)
+		parts[partName], err = marshal(xSheet) // 500mb lost here
+		fmt.Println("[" + time.Now().Format("15:04:05") + "] After marshal.")
+		PrintMemUsage()
 		if err != nil {
 			return parts, err
 		}
 		sheetIndex++
 	}
-
+	fmt.Println("[" + time.Now().Format("15:04:05") + "] After processing sheets.")
 	workbookMarshal, err := marshal(workbook)
 	if err != nil {
 		return parts, err
